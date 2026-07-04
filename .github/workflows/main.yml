@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build APK (Stable Buildozer)
 
 on:
   push:
@@ -9,30 +9,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    - name: Install system packages
+    - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk build-essential
+        sudo apt install -y \
+        git zip unzip openjdk-17-jdk \
+        build-essential autoconf libtool pkg-config \
+        libffi-dev libssl-dev
 
     - name: Install Buildozer
       run: |
         pip install --upgrade pip
         pip install cython==0.29.36 buildozer
 
-    - name: Accept Android licenses
+    - name: Setup Android SDK (FULL FIX)
       run: |
-        yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        mkdir -p $HOME/android-sdk
+        export ANDROID_HOME=$HOME/android-sdk
+        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH || true
 
-    - name: Install correct build tools
-      run: |
-        yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" || true
+        echo "Skipping manual sdkmanager fixes (Buildozer will handle SDK)"
 
     - name: Build APK
       run: |
